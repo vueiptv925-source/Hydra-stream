@@ -1,7 +1,6 @@
 import { providers, buildUrl } from './providers.js';
 
 export const getStreams = async (params) => {
-  // نبني الروابط مباشرة (بدون أي اتصال خارجي)
   const sources = providers.map((provider) => ({
     id: provider.id,
     label: provider.label,

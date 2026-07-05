@@ -1,14 +1,12 @@
-// إدارة حالة المصادر بدون اتصال خارجي
+// إدارة المصادر بدون اتصال خارجي
 const breakerState = new Map();
 
 export const circuitBreaker = {
-  // التحقق من حالة المصدر
   isOpen(providerId) {
     const state = breakerState.get(providerId);
     if (!state) return false;
     
     if (state.status === 'OPEN') {
-      // التحقق من انتهاء وقت الحظر
       if (Date.now() > state.nextAttempt) {
         state.status = 'HALF_OPEN';
         state.failures = 0;
@@ -19,7 +17,6 @@ export const circuitBreaker = {
     return false;
   },
   
-  // تسجيل نجاح (محاكاة)
   recordSuccess(providerId) {
     const state = breakerState.get(providerId);
     if (state) {
@@ -28,7 +25,6 @@ export const circuitBreaker = {
     }
   },
   
-  // تسجيل فشل (محاكاة)
   recordFailure(providerId) {
     const state = breakerState.get(providerId);
     if (!state) {
@@ -45,16 +41,14 @@ export const circuitBreaker = {
     if (state.failures >= 5) {
       state.status = 'OPEN';
       state.nextAttempt = Date.now() + 15 * 60 * 1000;
-      console.log(`⛔ المصدر ${providerId} معطل مؤقتاً (15 دقيقة)`);
+      console.log(`⛔ المصدر ${providerId} معطل مؤقتاً`);
     }
   },
   
-  // إحصائيات
   getStats() {
     return Object.fromEntries(breakerState);
   },
 
-  // إعادة تعيين
   resetAll() {
     for (const [key] of breakerState) {
       breakerState.set(key, {
@@ -63,6 +57,5 @@ export const circuitBreaker = {
         nextAttempt: Date.now()
       });
     }
-    console.log('🔄 تم إعادة تعيين جميع قواطع الدائرة');
   }
 };

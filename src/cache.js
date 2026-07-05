@@ -1,35 +1,30 @@
 import { providers, buildUrl } from './providers.js';
-
-// ذاكرة تخزين مؤقتة (اختيارية)
-const memoryCache = new Map();
-const CACHE_TTL = 60 * 60 * 1000; // ساعة واحدة
+import { fetchSourcesParallel } from './fetchWithTimeout.js';
 
 export const getStreams = async (params) => {
-  const cacheKey = `${params.type}:${params.id}:${params.season}:${params.episode}`;
-
-  // 1. التحقق من الكاش
-  if (memoryCache.has(cacheKey)) {
-    const entry = memoryCache.get(cacheKey);
-    if (Date.now() - entry.timestamp < CACHE_TTL) {
-      console.log(`✅ من الكاش: ${cacheKey}`);
-      return entry.sources;
-    }
-  }
-
-  // 2. بناء الروابط مباشرة (بدون أي اتصال خارجي)
-  const sources = providers.map((provider) => ({
+  // بناء جميع الروابط
+  const allSources = providers.map(provider => ({
     id: provider.id,
     label: provider.label,
-    url: buildUrl(provider, params),
-    status: 'ready' // جاهز للتجربة في تطبيقك
+    url: buildUrl(provider, params)
   }));
 
-  // 3. تخزين النتيجة في الكاش
-  memoryCache.set(cacheKey, {
-    timestamp: Date.now(),
-    sources: sources
-  });
-
-  console.log(`✅ تم تجهيز ${sources.length} مصدراً لـ ${cacheKey}`);
-  return sources;
+  try {
+    // محاولة اختيار أفضل مصدر (محاكاة)
+    const result = await fetchSourcesParallel(allSources);
+    
+    // إرجاع المصدر المختار فقط (يمكنك تعديله لإرجاع الكل)
+    return [{
+      id: result.providerId,
+      label: providers.find(p => p.id === result.providerId)?.label || result.providerId,
+      url: result.url,
+      status: 'ready'
+    }];
+  } catch (error) {
+    // في حالة الفشل، إرجاع جميع المصادر كاحتياطي
+    return allSources.map(s => ({
+      ...s,
+      status: '⚠️ حاول مرة أخرى'
+    }));
+  }
 };

@@ -1,65 +1,9 @@
-// ============================================================
-// قائمة المصادر (7 مصادر - تعمل جميعها)
+ // ============================================================
+// قائمة المصادر (مرتبة حسب طلبك)
 // ============================================================
 
 export const providers = [
-  // ===== 1. MoviesAPI (يعمل - معرف رقمي) =====
-  {
-    id: 'moviesapi',
-    label: 'MoviesAPI',
-    buildUrl: (p) => {
-      if (p.type === 'movie') {
-        return `https://moviesapi.to/movie/${p.id}`;
-      } else if (p.type === 'tv') {
-        return `https://moviesapi.to/tv/${p.id}/${p.season}/${p.episode}`;
-      }
-      return '';
-    }
-  },
-
-  // ===== 2. Videasy (يعمل - معرف رقمي) =====
-  {
-    id: 'videasy',
-    label: 'Videasy',
-    buildUrl: (p) => {
-      if (p.type === 'movie') {
-        return `https://player.videasy.net/movie/${p.id}`;
-      } else if (p.type === 'tv') {
-        return `https://player.videasy.net/tv/${p.id}`;
-      }
-      return '';
-    }
-  },
-
-  // ===== 3. VidCore.org (يعمل - معرف رقمي) =====
-  {
-    id: 'vidcore',
-    label: 'VidCore.org',
-    buildUrl: (p) => {
-      if (p.type === 'movie') {
-        return `https://www.vidcore.org/embed/movie/${p.id}`;
-      } else if (p.type === 'tv') {
-        return `https://www.vidcore.org/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      }
-      return '';
-    }
-  },
-
-  // ===== 4. VidSrc.to (يعمل - معرف IMDb) =====
-  {
-    id: 'vidsrc.to',
-    label: 'VidSrc.to',
-    buildUrl: (p) => {
-      if (p.type === 'movie') {
-        return `https://vidsrc.to/embed/movie/${p.id}`;
-      } else if (p.type === 'tv') {
-        return `https://vidsrc.to/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      }
-      return '';
-    }
-  },
-
-  // ===== 5. VidSrc.pm (يعمل - معرف IMDb) =====
+  // ===== 1. VidSrc.pm =====
   {
     id: 'vidsrc.pm',
     label: 'VidSrc.pm',
@@ -73,7 +17,49 @@ export const providers = [
     }
   },
 
-  // ===== 6. VidSrc.me (يعمل - معرف IMDb) =====
+  // ===== 2. MoviesAPI =====
+  {
+    id: 'moviesapi',
+    label: 'MoviesAPI',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://moviesapi.to/movie/${p.id}`;
+      } else if (p.type === 'tv') {
+        return `https://moviesapi.to/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ===== 3. VidCore =====
+  {
+    id: 'vidcore',
+    label: 'VidCore',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://www.vidcore.org/embed/movie/${p.id}`;
+      } else if (p.type === 'tv') {
+        return `https://www.vidcore.org/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ===== 4. VidSrc.to =====
+  {
+    id: 'vidsrc.to',
+    label: 'VidSrc.to',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        return `https://vidsrc.to/embed/movie/${p.id}`;
+      } else if (p.type === 'tv') {
+        return `https://vidsrc.to/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      }
+      return '';
+    }
+  },
+
+  // ===== 5. VidSrc.me =====
   {
     id: 'vidsrc.me',
     label: 'VidSrc.me',
@@ -87,7 +73,7 @@ export const providers = [
     }
   },
 
-  // ===== 7. VidSrc.mov (يعمل - معرف IMDb) =====
+  // ===== 6. VidSrc.mov =====
   {
     id: 'vidsrc.mov',
     label: 'VidSrc.mov',
@@ -103,8 +89,8 @@ export const providers = [
 ];
 
 // ============================================================
-// دالة مساعدة لبناء الرابط (تُستخدم في cache.js)
+// دالة مساعدة لبناء الرابط
 // ============================================================
 export const buildUrl = (provider, params) => {
   return provider.buildUrl(params);
-};
+};   

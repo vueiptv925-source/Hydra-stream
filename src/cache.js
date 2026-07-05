@@ -1,14 +1,12 @@
 import { providers, buildUrl } from './providers.js';
-import { extractDirectVideo, cleanUrl } from './adBlocker.js';
+import { extractDirectVideo } from './adBlocker.js';
 
-// ذاكرة تخزين مؤقتة
 const memoryCache = new Map();
-const CACHE_TTL = 60 * 60 * 1000; // ساعة واحدة
+const CACHE_TTL = 60 * 60 * 1000;
 
 export const getStreams = async (params) => {
   const cacheKey = `${params.type}:${params.id}:${params.season}:${params.episode}`;
 
-  // التحقق من الكاش
   if (memoryCache.has(cacheKey)) {
     const entry = memoryCache.get(cacheKey);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
@@ -18,44 +16,20 @@ export const getStreams = async (params) => {
 
   console.log(`🔄 جاري تجهيز المصادر لـ ${params.id}...`);
 
-  // بناء الروابط مع محاولة استخراج الفيديو المباشر
   const sources = await Promise.all(
     providers.map(async (provider) => {
       const embedUrl = buildUrl(provider, params);
       
-      // محاولة استخراج الفيديو المباشر
-      let videoUrl = await extractDirectVideo(embedUrl);
+      // محاولة سريعة لاستخراج الفيديو المباشر (بحد أقصى 1.5 ثانية)
+      const videoUrl = await extractDirectVideo(embedUrl);
       
-      // تنظيف الرابط من معاملات التتبع
-      videoUrl = cleanUrl(videoUrl);
-      
-      // تحديد نوع الرابط (مباشر أم تضمين)
-      const isDirect = videoUrl !== embedUrl;
-      const isM3u8 = videoUrl.includes('.m3u8');
-      const isMp4 = videoUrl.includes('.mp4');
-      
-      let type = 'embed';
-      let label = provider.label;
-      
-      if (isM3u8) {
-        type = 'hls';
-        label = `${provider.label} (مباشر HLS)`;
-      } else if (isMp4) {
-        type = 'mp4';
-        label = `${provider.label} (مباشر MP4)`;
-      } else if (isDirect) {
-        type = 'direct';
-        label = `${provider.label} (مباشر)`;
-      }
-
       return {
         id: provider.id,
-        label: label,
+        label: videoUrl !== embedUrl ? `${provider.label} (مباشر)` : provider.label,
         url: videoUrl,
-        embedUrl: embedUrl, // الرابط الأصلي كخيار احتياطي
-        type: type, // embed / hls / mp4 / direct
+        embedUrl: embedUrl,
         status: 'ready',
-        adFree: isDirect // إذا كان مباشراً، فهو خالٍ من الإعلانات
+        adFree: videoUrl !== embedUrl // إذا اختلف الرابط، فهذا يعني أنه مباشر
       };
     })
   );
@@ -67,7 +41,6 @@ export const getStreams = async (params) => {
     return 0;
   });
 
-  // تخزين النتيجة في الكاش
   memoryCache.set(cacheKey, {
     timestamp: Date.now(),
     sources: sortedSources

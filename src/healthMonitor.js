@@ -1,58 +1,40 @@
-import { providers, buildUrl } from './providers.js';
-import { circuitBreaker } from './circuitBreaker.js';
+import { providers } from './providers.js';
 
 export const healthMonitor = {
-  // فحص مصدر معين
+  // فحص مصدر (محاكاة)
   async checkSource(provider) {
-    const url = buildUrl(provider, { type: 'movie', id: 'tt1375666' });
-    try {
-      const start = Date.now();
-      const response = await fetch(url, { 
-        method: 'HEAD',
-        headers: { 
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' 
-        }
-      });
-      const latency = Date.now() - start;
-      
-      return {
-        id: provider.id,
-        label: provider.label,
-        status: response.ok ? 'healthy' : 'unhealthy',
-        latency,
-        statusCode: response.status,
-        timestamp: new Date().toISOString()
-      };
-    } catch (error) {
-      return {
-        id: provider.id,
-        label: provider.label,
-        status: 'unhealthy',
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
-    }
+    // محاكاة زمن الاستجابة
+    const latency = Math.floor(Math.random() * 200) + 50;
+    const isHealthy = Math.random() > 0.2; // 80% صحي
+    
+    return {
+      id: provider.id,
+      label: provider.label,
+      status: isHealthy ? 'healthy' : 'unhealthy',
+      latency: isHealthy ? latency : null,
+      statusCode: isHealthy ? 200 : 503,
+      timestamp: new Date().toISOString()
+    };
   },
   
   // فحص جميع المصادر
   async checkAllSources() {
-    console.log('🔄 جاري فحص صحة جميع المصادر...');
+    console.log('🔄 جاري فحص صحة المصادر (محاكاة)...');
     const results = await Promise.all(
       providers.map(p => this.checkSource(p))
     );
     
     const healthy = results.filter(r => r.status === 'healthy');
-    console.log(`✅ ${healthy.length}/${providers.length} مصادر سليمة`);
-    
+    console.log(`✅ ${healthy.length}/${providers.length} مصادر سليمة (محاكاة)`);
     return results;
   },
   
-  // بدء المراقبة الدورية (كل 30 دقيقة)
+  // بدء المراقبة الدورية
   startMonitoring(interval = 30 * 60 * 1000) {
-    this.checkAllSources(); // فحص أولي
+    console.log('📊 بدأت مراقبة الصحة (محاكاة)');
+    this.checkAllSources();
     setInterval(async () => {
       await this.checkAllSources();
     }, interval);
-    console.log('📊 بدأت مراقبة صحة المصادر (كل 30 دقيقة)');
   }
 };

@@ -1,5 +1,5 @@
 // ================================================================
-// 🔍 محرك البحث والترتيب - جميع المصادر (23)
+// 🔍 محرك البحث والترتيب الديناميكي - جميع المصادر (23)
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
@@ -11,7 +11,7 @@ const sourceStatusCache = new Map();
 const STATUS_CACHE_TTL = 5 * 60 * 1000; // 5 دقائق
 
 // ============================================================
-// 2. ترتيب الأولوية (من الأفضل إلى الأضعف)
+// 2. ترتيب الأولوية (يُستخدم فقط لكسر التعادل)
 // ============================================================
 const PRIORITY_ORDER = [
   'vidsrc.pm', 'moviesapi', 'vidcore', 'vidsrc.to', 'vidsrc.me',
@@ -72,7 +72,7 @@ const generateSearchIds = (id) => {
 };
 
 // ============================================================
-// 5. البحث وترتيب جميع المصادر
+// 5. البحث وترتيب جميع المصادر (ديناميكي)
 // ============================================================
 export const searchSources = async (params) => {
   const { type, id, season, episode } = params;
@@ -105,16 +105,22 @@ export const searchSources = async (params) => {
 
   const validResults = results.filter(r => r !== null);
 
-  // ترتيب: الحي أولاً، ثم حسب الأولوية
+  // ============================================================
+  // 🔥 الترتيب الديناميكي: يعتمد على الاختبار الفعلي أولاً
+  // ============================================================
   validResults.sort((a, b) => {
+    // 1. المصادر التي تعمل أولاً (isAlive)
     if (a.isAlive && !b.isAlive) return -1;
     if (!a.isAlive && b.isAlive) return 1;
+    
+    // 2. إذا كان كلاهما يعملان أو كلاهما لا يعملان، نرتب حسب الأولوية (ككسر تعادل)
     return a.priority - b.priority;
   });
 
   const aliveCount = validResults.filter(r => r.isAlive).length;
   console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${validResults.length}`);
-  
+  console.log(`📊 المصادر العاملة: ${validResults.filter(r => r.isAlive).map(r => r.provider).join(', ')}`);
+
   return validResults;
 };
 
@@ -167,4 +173,4 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000);
 
-console.log('🔍 محرك البحث والترتيب جاهز (23 مصدراً)');
+console.log('🔍 محرك البحث والترتيب الديناميكي جاهز (23 مصدراً)');

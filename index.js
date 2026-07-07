@@ -1,57 +1,25 @@
 import express from 'express';
 import cors from 'cors';
-import { getStreams } from './src/cache.js';
-import { providers } from './src/providers.js';
+import { getStreams, clearCache } from './src/cache.js';
+import { searchSources } from './src/searchEngine.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ===== نقطة الجذر (الرئيسية) =====
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: '🐉 HydraStream is running',
-    version: '2.0.0',
-    endpoints: {
-      health: '/api/health',
-      stats: '/api/stats',
-      stream: '/api/stream?type=movie&id=tt1375666'
-    }
-  });
-});
+// ============================================================
+// نقاط النهاية الأساسية
+// ============================================================
 
-// ===== نقطة فحص الصحة =====
+// الصحة
 app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    status: 'ok',
-    service: 'HydraStream',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  });
+  res.json({ success: true, status: 'ok', service: 'HydraStream' });
 });
 
-// ===== نقطة إحصائيات المصادر (الميزة الجديدة) =====
-app.get('/api/stats', (req, res) => {
-  res.json({
-    success: true,
-    totalSources: providers.length,
-    sources: providers.map(p => ({
-      id: p.id,
-      label: p.label,
-      type: p.id.includes('tv') ? 'tv' : 'movie'
-    })),
-    timestamp: new Date().toISOString()
-  });
-});
-
-// ===== نقطة جلب روابط البث (الرئيسية) =====
+// جلب المصادر (مع البحث التلقائي)
 app.get('/api/stream', async (req, res) => {
-  const startTime = Date.now();
-  const { type, id, season, episode } = req.query;
+  const { type, id, season, episode, language, animeSource } = req.query;
 
-  // التحقق من المدخلات
   if (!type || !id) {
     return res.status(400).json({
       success: false,
@@ -60,53 +28,71 @@ app.get('/api/stream', async (req, res) => {
     });
   }
 
-  if (type === 'tv' && (!season || !episode)) {
-    return res.status(400).json({
-      success: false,
-      error: 'المسلسلات تحتاج season و episode',
-      example: '/api/stream?type=tv&id=tt0944947&season=1&episode=1'
-    });
-  }
-
   const params = {
     type,
     id,
     season: season || '1',
-    episode: episode || '1'
+    episode: episode || '1',
+    language: language || 'sub',
+    animeSource: animeSource || 's-2'
   };
 
   try {
     const sources = await getStreams(params);
-    const responseTime = Date.now() - startTime;
-
     res.json({
       success: true,
       params,
       total: sources.length,
-      responseTime: `${responseTime}ms`,
       sources
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message || 'حدث خطأ أثناء جلب المصادر'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// ===== معالج الروابط غير الموجودة (404) =====
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: '🚫 الرابط غير موجود',
-    available_endpoints: ['/api/health', '/api/stats', '/api/stream']
+// ============================================================
+// نقاط نهاية إضافية (البحث والتطوير)
+// ============================================================
+
+// البحث المباشر (بدون كاش)
+app.post('/api/search', async (req, res) => {
+  const { type, id, season, episode } = req.body;
+  
+  if (!type || !id) {
+    return res.status(400).json({ error: 'type و id مطلوبان' });
+  }
+
+  try {
+    const params = { type, id, season: season || '1', episode: episode || '1' };
+    const results = await searchSources(params);
+    res.json({ success: true, results });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// تنظيف الكاش
+app.post('/api/clear-cache', (req, res) => {
+  clearCache();
+  res.json({ success: true, message: 'تم تنظيف الكاش' });
+});
+
+// الجذر
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'HydraStream is running',
+    endpoints: {
+      health: '/api/health',
+      stream: '/api/stream?type=movie&id=tt1375666',
+      search: '/api/search (POST)',
+      clearCache: '/api/clear-cache (POST)'
+    }
   });
 });
 
-// ===== تشغيل السيرفر =====
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ HydraStream running on port ${PORT}`);
-  console.log(`📊 Stats: http://localhost:${PORT}/api/stats`);
-  console.log(`🎬 Stream: http://localhost:${PORT}/api/stream?type=movie&id=tt1375666`);
+  console.log(`🔍 نظام البحث التلقائي ومنع الإعلانات يعمل`);
 });

@@ -1,19 +1,19 @@
 // ================================================================
-// 📦 نظام التخزين المؤقت - نسخة سريعة
+// 📦 التخزين المؤقت - دمج البحث والترتيب ومنع الإعلانات
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
-import { getAdFreeVideo } from './adBlocker.js';
+import { getAdFreeVideo } from './advancedAdBlocker.js';
 import { searchSources, searchAnime } from './searchEngine.js';
 
 const memoryCache = new Map();
-const CACHE_TTL = 2 * 60 * 60 * 1000; // ساعتين (أطول لتقليل الاختبارات)
+const CACHE_TTL = 2 * 60 * 60 * 1000; // ساعتين
 
 export const getStreams = async (params) => {
   const { type, id, season, episode } = params;
   const cacheKey = `${type}:${id}:${season}:${episode}`;
 
-  // 1. التحقق من الكاش (أسرع)
+  // التحقق من الكاش
   if (memoryCache.has(cacheKey)) {
     const entry = memoryCache.get(cacheKey);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
@@ -22,31 +22,40 @@ export const getStreams = async (params) => {
     }
   }
 
-  console.log(`🔄 بحث سريع عن: ${id}`);
+  console.log(`🔄 جاري البحث والترتيب ومنع الإعلانات عن: ${id}`);
 
   let sources = [];
 
-  // 2. البحث السريع (نستخدم المصادر الأساسية فقط)
+  // البحث في جميع المصادر (أفلام ومسلسلات)
   if (type === 'movie' || type === 'tv') {
     const searchParams = { type, id, season, episode };
     const searchResults = await searchSources(searchParams);
     
-    // معالجة سريعة (بدون انتظار طويل)
-    const cleanedResults = await Promise.all(
+    // تطبيق منع الإعلانات مع الحفاظ على الترتيب
+    const processedResults = await Promise.all(
       searchResults.map(async (result) => {
-        const adFreeUrl = await getAdFreeVideo(result.url, result.provider);
+        // محاولة إزالة الإعلانات فقط للمصادر الحية
+        let adFreeUrl = result.url;
+        let adFree = false;
+        
+        if (result.isAlive) {
+          adFreeUrl = await getAdFreeVideo(result.url, result.provider);
+          adFree = adFreeUrl !== result.url;
+        }
+        
         return {
           ...result,
           url: adFreeUrl,
-          adFree: adFreeUrl !== result.url
+          adFree: adFree,
+          status: result.isAlive ? '✅ يعمل' : '❌ لا يعمل'
         };
       })
     );
     
-    sources = cleanedResults;
+    sources = processedResults;
   }
 
-  // 3. البحث عن أنمي (إذا لزم الأمر)
+  // البحث عن أنمي
   if (type === 'anime' || (type === 'tv' && params.animeSource)) {
     const animeParams = { 
       id, 
@@ -61,15 +70,16 @@ export const getStreams = async (params) => {
       sources.push({
         ...animeResult,
         url: adFreeUrl,
-        adFree: adFreeUrl !== animeResult.url
+        adFree: adFreeUrl !== animeResult.url,
+        status: '✅ يعمل'
       });
     }
   }
 
-  // 4. خطة احتياطية (إذا لم نجد أي مصدر)
+  // خطة احتياطية (إذا لم نجد أي مصدر)
   if (sources.length === 0) {
     console.warn('⚠️ استخدام القائمة الاحتياطية');
-    const allSources = providers.slice(0, 8).map((provider) => {
+    const allSources = providers.map((provider) => {
       const url = buildUrl(provider, params);
       return {
         provider: provider.id,
@@ -77,27 +87,31 @@ export const getStreams = async (params) => {
         url: url,
         id: id,
         type: 'embed',
-        quality: 'auto',
-        adFree: false
+        adFree: false,
+        status: '⚠️ غير مختبر',
+        isAlive: false
       };
     });
     sources = allSources;
   }
 
-  // 5. ترتيب النتائج
+  // ترتيب نهائي
   sources.sort((a, b) => {
-    if (a.adFree && !b.adFree) return -1;
-    if (!a.adFree && b.adFree) return 1;
-    return 0;
+    // المصادر الحية أولاً
+    if (a.isAlive && !b.isAlive) return -1;
+    if (!a.isAlive && b.isAlive) return 1;
+    // ثم حسب الأولوية
+    return (a.priority || 999) - (b.priority || 999);
   });
 
-  // 6. تخزين في الكاش
+  // تخزين في الكاش
   memoryCache.set(cacheKey, {
     timestamp: Date.now(),
     sources: sources
   });
 
-  console.log(`✅ ${sources.length} مصدراً (${sources.filter(s => s.adFree).length} خالية من الإعلانات)`);
+  const aliveCount = sources.filter(s => s.isAlive).length;
+  console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${sources.length}`);
   return sources;
 };
 

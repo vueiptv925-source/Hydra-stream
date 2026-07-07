@@ -1,15 +1,16 @@
 // ================================================================
-// 🔍 محرك البحث والترتيب الديناميكي - اختبار فعلي لكل طلب
+// 🔍 محرك البحث والترتيب - إظهار جميع المصادر (23)
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
 
 // ============================================================
-// 1. اختبار المصدر (محاولة HEAD ثم GET إذا فشل)
+// 1. اختبار المصدر
 // ============================================================
 const testSource = async (url) => {
+  if (!url) return { isAlive: false, statusCode: null };
+  
   try {
-    // محاولة HEAD أولاً (أسرع)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
     
@@ -20,127 +21,87 @@ const testSource = async (url) => {
     });
     
     clearTimeout(timeoutId);
-    const isAlive = response.ok || response.status === 403 || response.status === 302;
-    return { isAlive, statusCode: response.status, method: 'HEAD' };
-    
-  } catch (error) {
-    // إذا فشل HEAD، نحاول GET (بعض المواقع تمنع HEAD)
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      // نأخذ أول 1024 بايت فقط ثم نغلق الاتصال
-      const isAlive = response.ok || response.status === 403 || response.status === 302;
-      return { isAlive, statusCode: response.status, method: 'GET' };
-      
-    } catch (e) {
-      return { isAlive: false, statusCode: null, error: e.message };
-    }
+    return { 
+      isAlive: response.ok || response.status === 403 || response.status === 302,
+      statusCode: response.status 
+    };
+  } catch {
+    return { isAlive: false, statusCode: null };
   }
 };
 
 // ============================================================
-// 2. توليد معرفات بحث متعددة
-// ============================================================
-const generateSearchIds = (id) => {
-  const ids = [id];
-  if (id.startsWith('tt')) {
-    const num = id.replace('tt', '');
-    if (!isNaN(num)) ids.push(parseInt(num));
-  }
-  return ids;
-};
-
-// ============================================================
-// 3. البحث وترتيب جميع المصادر (ديناميكي - بدون كاش ثابت)
+// 2. البحث وترتيب جميع المصادر - إظهار الكل
 // ============================================================
 export const searchSources = async (params) => {
   const { type, id, season, episode } = params;
-  const searchIds = generateSearchIds(id);
   
-  console.log(`🔍 جاري الاختبار الفعلي لجميع المصادر (23) عن: ${id}`);
+  console.log(`🔍 جاري اختبار جميع المصادر (23) عن: ${id}`);
 
-  // اختبار جميع المصادر بالتوازي (بدون أي كاش)
+  // اختبار جميع المصادر بدون استثناء
   const results = await Promise.all(
     providers.map(async (provider) => {
-      // تجربة جميع المعرفات الممكنة
-      for (const searchId of searchIds) {
-        const testParams = { type, id: searchId, season, episode };
-        const url = buildUrl(provider, testParams);
-        if (!url) continue;
-        
-        const status = await testSource(url);
-        if (status.isAlive) {
-          // إذا وجدنا معرفاً يعمل، نستخدمه ونتوقف
-          return {
-            provider: provider.id,
-            label: provider.label,
-            url: url,
-            id: searchId,
-            type: 'embed',
-            isAlive: true,
-            statusCode: status.statusCode,
-            method: status.method
-          };
+      // محاولة بناء الرابط
+      let url = buildUrl(provider, { type, id, season, episode });
+      
+      // إذا فشل بناء الرابط، نحاول مع معرفات بديلة
+      if (!url && id.startsWith('tt')) {
+        const numId = parseInt(id.replace('tt', ''));
+        if (!isNaN(numId)) {
+          url = buildUrl(provider, { type, id: numId, season, episode });
         }
       }
       
-      // إذا لم يعمل أي معرف، نرجع المصدر ميتاً
-      const fallbackUrl = buildUrl(provider, { type, id: id, season, episode });
+      // اختبار المصدر (فقط إذا كان الرابط موجوداً)
+      let status = { isAlive: false, statusCode: null };
+      if (url) {
+        status = await testSource(url);
+      }
+      
+      // نعيد المصدر دائماً (حتى لو الرابط فارغ)
       return {
         provider: provider.id,
         label: provider.label,
-        url: fallbackUrl || '',
+        url: url || '#', // رابط افتراضي إذا كان فارغاً
         id: id,
         type: 'embed',
-        isAlive: false,
-        statusCode: null,
-        method: null
+        isAlive: status.isAlive,
+        statusCode: status.statusCode,
+        hasValidUrl: !!url
       };
     })
   );
 
-  const validResults = results.filter(r => r !== null && r.url);
-
   // ============================================================
-  // 🔥 الترتيب الديناميكي: فقط يعتمد على isAlive
+  // الترتيب: يعمل أولاً، ثم حسب الأولوية
   // ============================================================
-  // نقسم المصادر إلى مجموعتين: تعمل ولا تعمل
-  const alive = validResults.filter(r => r.isAlive === true);
-  const dead = validResults.filter(r => r.isAlive === false);
+  const priorityOrder = [
+    'vidsrc.pm', 'moviesapi', 'vidcore', 'vidsrc.to', 'vidsrc.me',
+    'vidsrc.mov', 'videasy', 'vidsrc.wiki', 'vidsrc.sbs', 'streamvaultsrc',
+    'vidsrc.top', 'vidsrc.ru', 'vidfast.vc', 'cinemaos', '111movies',
+    'vidzee', 'vidnest', 'cinesrc', 'wavembed', 'apiplayer',
+    'vidzen', 'vidphantom', 'animeplay'
+  ];
 
-  // نرتب المصادر العاملة حسب سرعة الاستجابة (statusCode)
-  // 200 أفضل من 302 أفضل من 403
-  alive.sort((a, b) => {
-    // نفضل 200 على 302 على 403
-    const scoreA = a.statusCode === 200 ? 0 : a.statusCode === 302 ? 1 : a.statusCode === 403 ? 2 : 3;
-    const scoreB = b.statusCode === 200 ? 0 : b.statusCode === 302 ? 1 : b.statusCode === 403 ? 2 : 3;
-    return scoreA - scoreB;
+  results.sort((a, b) => {
+    // المصادر التي تعمل أولاً
+    if (a.isAlive && !b.isAlive) return -1;
+    if (!a.isAlive && b.isAlive) return 1;
+    
+    // ثم حسب الأولوية
+    const aIndex = priorityOrder.indexOf(a.provider);
+    const bIndex = priorityOrder.indexOf(b.provider);
+    return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
   });
 
-  // نرتب المصادر الميتة أبجدياً (لكي يكون الترتيب ثابتاً)
-  dead.sort((a, b) => a.label.localeCompare(b.label));
-
-  // دمج القائمتين (العاملة أولاً، ثم الميتة)
-  const sortedResults = [...alive, ...dead];
-
-  console.log(`✅ ${alive.length} مصدراً يعمل من أصل ${validResults.length}`);
-  if (alive.length > 0) {
-    console.log(`📊 المصادر العاملة: ${alive.map(r => r.provider).join(', ')}`);
-  }
-
-  return sortedResults;
+  const aliveCount = results.filter(r => r.isAlive).length;
+  console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${results.length}`);
+  
+  return results;
 };
 
 // ============================================================
-// 4. البحث عن أنمي (مع اختبار فعلي)
+// 3. البحث عن أنمي
 // ============================================================
 export const searchAnime = async (params) => {
   const { id, season, episode, language = 'sub', source = 's-2' } = params;
@@ -177,4 +138,4 @@ export const searchAnime = async (params) => {
   return null;
 };
 
-console.log('🔍 محرك البحث والترتيب الديناميكي جاهز (بدون كاش ثابت)'); 
+console.log('🔍 محرك البحث جاهز (يظهر جميع المصادر)');

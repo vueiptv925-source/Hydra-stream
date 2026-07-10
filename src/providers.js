@@ -1,46 +1,11 @@
 // ================================================================
-// 🎬 قائمة المصادر (23 مصدراً) - تم التحقق من صحة الروابط
+// 🎬 قائمة المصادر (تم التحقق من صلاحيتها - يوليو 2026)
 // ================================================================
 
 export const providers = [
   // ============================================================
-  // 🔵 المصادر العامة (أفلام ومسلسلات)
+  // ✅ المصادر الأساسية (Core) - الأكثر استقراراً
   // ============================================================
-
-  // 1. VidSrc.pm
-  {
-    id: 'vidsrc.pm',
-    label: 'VidSrc.pm',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidsrc.pm/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidsrc.pm/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 2. MoviesAPI
-  {
-    id: 'moviesapi',
-    label: 'MoviesAPI',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://moviesapi.to/movie/${p.id}`;
-      if (p.type === 'tv') return `https://moviesapi.to/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 3. VidCore.org
-  {
-    id: 'vidcore',
-    label: 'VidCore.org',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://www.vidcore.org/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://www.vidcore.org/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 4. VidSrc.to
   {
     id: 'vidsrc.to',
     label: 'VidSrc.to',
@@ -50,30 +15,91 @@ export const providers = [
       return '';
     }
   },
-
-  // 5. VidSrc.me
   {
-    id: 'vidsrc.me',
-    label: 'VidSrc.me',
+    id: 'vidsrc.pm',
+    label: 'VidSrc.pm',
     buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidsrc.me/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidsrc.me/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      if (p.type === 'movie') return `https://vidsrc.pm/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidsrc.pm/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+  {
+    id: 'vidlink',
+    label: 'VidLink',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidlink.pro/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidlink.pro/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+  {
+    id: 'vidfast',
+    label: 'VidFast',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidfast.pro/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidfast.pro/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+  {
+    id: 'vidsrc.cc',
+    label: 'VidSrc.cc',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidsrc.cc/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidsrc.cc/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+  {
+    id: '2embed.skin',
+    label: '2Embed.skin',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://2embed.skin/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://2embed.skin/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+  {
+    id: '2embed.cc',
+    label: '2Embed.cc',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://www.2embed.cc/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://www.2embed.cc/embed/tv/${p.id}/${p.season}/${p.episode}`;
       return '';
     }
   },
 
-  // 6. VidSrc.mov
+  // ============================================================
+  // 🟢 مصادر بديلة قوية (Extras)
+  // ============================================================
   {
-    id: 'vidsrc.mov',
-    label: 'VidSrc.mov',
+    id: 'moviesapi',
+    label: 'MoviesAPI',
     buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidsrc.mov/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidsrc.mov/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      if (p.type === 'movie') return `https://moviesapi.to/movie/${p.id}`;
+      if (p.type === 'tv') return `https://moviesapi.to/tv/${p.id}/${p.season}/${p.episode}`;
       return '';
     }
   },
-
-  // 7. Videasy
+  {
+    id: 'vidcore',
+    label: 'VidCore',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidcore.org/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidcore.org/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+  {
+    id: 'superembed',
+    label: 'SuperEmbed',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://superembed.stream/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://superembed.stream/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
   {
     id: 'videasy',
     label: 'Videasy',
@@ -83,8 +109,6 @@ export const providers = [
       return '';
     }
   },
-
-  // 8. VidSrc.wiki
   {
     id: 'vidsrc.wiki',
     label: 'VidSrc.wiki',
@@ -94,8 +118,6 @@ export const providers = [
       return '';
     }
   },
-
-  // 9. VidSrc.sbs
   {
     id: 'vidsrc.sbs',
     label: 'VidSrc.sbs',
@@ -106,7 +128,36 @@ export const providers = [
     }
   },
 
-  // 10. StreamVaultSrc.click
+  // ============================================================
+  // 🔵 مصادر إضافية (قد تعمل في بعض المناطق)
+  // ============================================================
+  {
+    id: 'vidsrc.top',
+    label: 'VidSrc.top',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vid-src.top/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vid-src.top/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+  {
+    id: 'vidsrc.ru',
+    label: 'VidSrc.ru',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidsrc.ru/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidsrc.ru/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+  {
+    id: 'vidfast.vc',
+    label: 'VidFast.vc',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidfast.vc/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidfast.vc/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
   {
     id: 'streamvaultsrc',
     label: 'StreamVaultSrc.click',
@@ -117,169 +168,43 @@ export const providers = [
     }
   },
 
-  // 11. VidSrc.top
-  {
-    id: 'vidsrc.top',
-    label: 'VidSrc.top',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vid-src.top/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vid-src.top/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 12. VidSrc.ru
-  {
-    id: 'vidsrc.ru',
-    label: 'VidSrc.ru',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidsrc.ru/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidsrc.ru/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 13. VidFast.vc
-  {
-    id: 'vidfast.vc',
-    label: 'VidFast.vc',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidfast.vc/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidfast.vc/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 14. CinemaOS.tech
-  {
-    id: 'cinemaos',
-    label: 'CinemaOS.tech',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://cinemaos.tech/player/movie/${p.id}`;
-      if (p.type === 'tv') return `https://cinemaos.tech/player/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 15. 111Movies.net
-  {
-    id: '111movies',
-    label: '111Movies.net',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://111movies.net/movie/${p.id}`;
-      if (p.type === 'tv') return `https://111movies.net/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 16. VidZee.wtf
-  {
-    id: 'vidzee',
-    label: 'VidZee.wtf',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://player.vidzee.wtf/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://player.vidzee.wtf/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 17. VidNest.fun
-  {
-    id: 'vidnest',
-    label: 'VidNest.fun',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidnest.fun/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidnest.fun/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 18. CineSrc.st
-  {
-    id: 'cinesrc',
-    label: 'CineSrc.st',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://cinesrc.st/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://cinesrc.st/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 19. WavEmbed.lol
-  {
-    id: 'wavembed',
-    label: 'WavEmbed.lol',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://wavembed.lol/movie/${p.id}`;
-      if (p.type === 'tv') return `https://wavembed.lol/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 20. APIPlayer.ru (قد لا يعمل حالياً)
-  {
-    id: 'apiplayer',
-    label: 'APIPlayer.ru',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://apiplayer.ru/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://apiplayer.ru/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 21. VidZen.fun
-  {
-    id: 'vidzen',
-    label: 'VidZen.fun',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidzen.fun/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidzen.fun/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // 22. VidPhantom.com
-  {
-    id: 'vidphantom',
-    label: 'VidPhantom.com',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidphantom.com/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidphantom.com/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
   // ============================================================
-  // 🟢 مصادر الأنمي (متخصصة)
+  // 🟣 مصادر الأنمي (متخصصة)
   // ============================================================
-
-  // 23. AnimePlay.cfd (يعمل - متخصص بالأنمي)
   {
     id: 'animeplay',
     label: 'AnimePlay.cfd',
     buildUrl: (p) => {
-      // هذا المصدر متخصص بالأنمي (يحتاج معرفات خاصة)
       if (p.type === 'tv' && p.animeSource) {
         const source = p.animeSource || 's-2';
         const epNum = p.episode || 1;
         const lang = p.language || 'sub';
-        
-        if (source === 's-2') {
-          return `https://animeplay.cfd/stream/s-2/${p.id}/${lang}`;
-        } else if (source === 'mal') {
-          return `https://animeplay.cfd/stream/mal/${p.id}/${epNum}/${lang}`;
-        } else if (source === 'ani') {
-          return `https://animeplay.cfd/stream/ani/${p.id}/${epNum}/${lang}`;
-        }
+        if (source === 's-2') return `https://animeplay.cfd/stream/s-2/${p.id}/${lang}`;
+        if (source === 'mal') return `https://animeplay.cfd/stream/mal/${p.id}/${epNum}/${lang}`;
+        if (source === 'ani') return `https://animeplay.cfd/stream/ani/${p.id}/${epNum}/${lang}`;
       }
       return '';
     }
-  }
+  },
+
+  // ============================================================
+  // ⚠️ المصادر التي تم إزالتها (لا تعمل حاليًا)
+  // ============================================================
+  // تم إزالة المصادر التالية لأنها متوقفة أو غير موثوقة:
+  // - vidsrc.me (غير مؤكد)
+  // - vidsrc.mov (غير مؤكد)
+  // - 111movies.net (غير مؤكد)
+  // - vidzee.wtf (غير مؤكد)
+  // - vidnest.fun (غير مؤكد)
+  // - cinesrc.st (غير مؤكد)
+  // - wavembed.lol (غير مؤكد)
+  // - vidzen.fun (غير مؤكد)
+  // - vidphantom.com (غير مؤكد)
+  // - cinemaos.tech (موقع مشبوه)
+  // - apiplayer.ru (لا يعمل)
+  // ============================================================
 ];
 
-// ============================================================
-// دالة مساعدة لبناء الرابط
-// ============================================================
 export const buildUrl = (provider, params) => {
   return provider.buildUrl(params);
 };

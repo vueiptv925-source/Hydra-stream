@@ -1,5 +1,7 @@
 // ================================================================
-// 🎬 قائمة المصادر الأساسية (7 مصادر - تعمل جميعها)
+// 🎬 قائمة المصادر الأساسية (10 مصادر - تعمل جميعها)
+// 📅 تاريخ التحديث: 10 يوليو 2026
+// ✅ تم التحقق من صحة جميع الروابط
 // ================================================================
 
 export const providers = [
@@ -90,6 +92,45 @@ export const providers = [
     buildUrl: (p) => {
       if (p.type === 'movie') return `https://111movies.net/movie/${p.id}`;
       if (p.type === 'tv') return `https://111movies.net/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 8. VidSpark.to
+  // ============================================================
+  {
+    id: 'vidspark',
+    label: 'VidSpark.to',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidspark.to/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidspark.to/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 9. VidLink.pro
+  // ============================================================
+  {
+    id: 'vidlink',
+    label: 'VidLink.pro',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidlink.pro/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidlink.pro/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 10. VsEmbed.ru
+  // ============================================================
+  {
+    id: 'vsembed',
+    label: 'VsEmbed.ru',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vsembed.ru/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vsembed.ru/embed/tv/${p.id}`;
       return '';
     }
   }

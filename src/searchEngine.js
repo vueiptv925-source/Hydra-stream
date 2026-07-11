@@ -1,18 +1,18 @@
 // ================================================================
-// 🔍 محرك البحث والترتيب - إظهار جميع المصادر (23)
+// 🔍 محرك البحث السريع - اختبار المصادر بالتوازي (Promise.race)
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
 
 // ============================================================
-// 1. اختبار المصدر
+// 1. اختبار المصدر بسرعة (مهلة 1 ثانية فقط)
 // ============================================================
 const testSource = async (url) => {
-  if (!url) return { isAlive: false, statusCode: null };
+  if (!url) return { isAlive: false };
   
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const timeoutId = setTimeout(() => controller.abort(), 1000); // 1 ثانية فقط
     
     const response = await fetch(url, {
       method: 'HEAD',
@@ -26,82 +26,62 @@ const testSource = async (url) => {
       statusCode: response.status 
     };
   } catch {
-    return { isAlive: false, statusCode: null };
+    return { isAlive: false };
   }
 };
 
 // ============================================================
-// 2. البحث وترتيب جميع المصادر - إظهار الكل
+// 2. البحث السريع - أول مصدر يعمل
 // ============================================================
 export const searchSources = async (params) => {
   const { type, id, season, episode } = params;
   
-  console.log(`🔍 جاري اختبار جميع المصادر (23) عن: ${id}`);
+  console.log(`⚡ بحث سريع عن: ${id}`);
 
-  // اختبار جميع المصادر بدون استثناء
-  const results = await Promise.all(
-    providers.map(async (provider) => {
-      // محاولة بناء الرابط
-      let url = buildUrl(provider, { type, id, season, episode });
-      
-      // إذا فشل بناء الرابط، نحاول مع معرفات بديلة
-      if (!url && id.startsWith('tt')) {
-        const numId = parseInt(id.replace('tt', ''));
-        if (!isNaN(numId)) {
-          url = buildUrl(provider, { type, id: numId, season, episode });
+  try {
+    // نبحث عن أول مصدر يعمل (باستخدام Promise.any)
+    const result = await Promise.any(
+      providers.map(async (provider) => {
+        // بناء الرابط
+        let url = buildUrl(provider, { type, id, season, episode });
+        
+        // إذا فشل، نحاول تحويل المعرف
+        if (!url && id.startsWith('tt')) {
+          const numId = parseInt(id.replace('tt', ''));
+          if (!isNaN(numId)) {
+            url = buildUrl(provider, { type, id: numId, season, episode });
+          }
         }
-      }
-      
-      // اختبار المصدر (فقط إذا كان الرابط موجوداً)
-      let status = { isAlive: false, statusCode: null };
-      if (url) {
-        status = await testSource(url);
-      }
-      
-      // نعيد المصدر دائماً (حتى لو الرابط فارغ)
-      return {
-        provider: provider.id,
-        label: provider.label,
-        url: url || '#', // رابط افتراضي إذا كان فارغاً
-        id: id,
-        type: 'embed',
-        isAlive: status.isAlive,
-        statusCode: status.statusCode,
-        hasValidUrl: !!url
-      };
-    })
-  );
+        
+        if (!url) throw new Error('no url');
+        
+        // اختبار المصدر
+        const status = await testSource(url);
+        if (!status.isAlive) throw new Error('dead');
+        
+        return {
+          provider: provider.id,
+          label: provider.label,
+          url: url,
+          id: id,
+          isAlive: true,
+          statusCode: status.statusCode
+        };
+      })
+    );
 
-  // ============================================================
-  // الترتيب: يعمل أولاً، ثم حسب الأولوية
-  // ============================================================
-  const priorityOrder = [
-    'vidsrc.pm', 'moviesapi', 'vidcore', 'vidsrc.to', 'vidsrc.me',
-    'vidsrc.mov', 'videasy', 'vidsrc.wiki', 'vidsrc.sbs', 'streamvaultsrc',
-    'vidsrc.top', 'vidsrc.ru', 'vidfast.vc', 'cinemaos', '111movies',
-    'vidzee', 'vidnest', 'cinesrc', 'wavembed', 'apiplayer',
-    'vidzen', 'vidphantom', 'animeplay'
-  ];
+    console.log(`✅ تم العثور على مصدر: ${result.provider}`);
+    return [result];
 
-  results.sort((a, b) => {
-    // المصادر التي تعمل أولاً
-    if (a.isAlive && !b.isAlive) return -1;
-    if (!a.isAlive && b.isAlive) return 1;
-    
-    // ثم حسب الأولوية
-    const aIndex = priorityOrder.indexOf(a.provider);
-    const bIndex = priorityOrder.indexOf(b.provider);
-    return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
-  });
-
-  const aliveCount = results.filter(r => r.isAlive).length;
-  console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${results.length}`);
-  
-  return results;
+  } catch (error) {
+    // إذا لم نجد أي مصدر خلال المهلة
+    console.warn('⚠️ لم يتم العثور على أي مصدر يعمل');
+    return [];
+  }
 };
 
 // ============================================================
-// 3. البحث عن أنمي
+// 3. البحث عن أنمي (سريع)
 // ============================================================
 export const searchAnime = async (params) => {
   const { id, season, episode, language = 'sub', source = 's-2' } = params;
@@ -130,12 +110,11 @@ export const searchAnime = async (params) => {
         id: id,
         type: 'anime',
         language: language,
-        isAlive: true,
-        statusCode: status.statusCode
+        isAlive: true
       };
     }
   } catch (e) {}
   return null;
 };
 
-console.log('🔍 محرك البحث جاهز (يظهر جميع المصادر)');
+console.log('⚡ محرك البحث السريع جاهز (Promise.race)');

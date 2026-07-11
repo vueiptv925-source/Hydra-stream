@@ -1,5 +1,5 @@
 // ================================================================
-// 🔍 محرك البحث الديناميكي - اختبار وترتيب كل طلب على حدة
+// 🔍 محرك البحث - ترتيب ثابت + علامات العمل (✅ / ❌)
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
@@ -31,27 +31,14 @@ const testSource = async (url) => {
 };
 
 // ============================================================
-// 2. ترتيب المصادر (ديناميكي حسب الأولوية)
-// ============================================================
-const PRIORITY_ORDER = [
-  'vidsrc.to', 'vidsrc.pm', 'vidsrc.me', 'vidcore', 'vidsrc.top',
-  'moviesapi', '111movies', 'vidspark', 'vidlink', 'vsembed'
-];
-
-const getPriority = (id) => {
-  const index = PRIORITY_ORDER.indexOf(id);
-  return index === -1 ? 999 : index;
-};
-
-// ============================================================
-// 3. اختبار جميع المصادر بالتوازي وترتيبها ديناميكياً
+// 2. البحث عن المصادر (ترتيب ثابت، بدون تغيير)
 // ============================================================
 export const searchSources = async (params) => {
   const { type, id, season, episode } = params;
   
-  console.log(`⚡ اختبار ديناميكي لجميع المصادر (10) عن: ${id}`);
+  console.log(`⚡ اختبار المصادر (ترتيب ثابت) عن: ${id}`);
 
-  // 1. اختبار جميع المصادر بالتوازي (بدون أي كاش)
+  // اختبار جميع المصادر بالتوازي
   const results = await Promise.all(
     providers.map(async (provider) => {
       let url = buildUrl(provider, { type, id, season, episode });
@@ -72,30 +59,24 @@ export const searchSources = async (params) => {
         id: id,
         isAlive: status.isAlive,
         statusCode: status.statusCode,
-        priority: getPriority(provider.id)
+        // نحافظ على الترتيب الأصلي من providers.js
+        originalIndex: providers.indexOf(provider)
       };
     })
   );
 
-  // 2. ترتيب ديناميكي: يعتمد على الاختبار الفعلي أولاً
-  const sortedResults = results.sort((a, b) => {
-    // المصادر التي تعمل أولاً (isAlive)
-    if (a.isAlive && !b.isAlive) return -1;
-    if (!a.isAlive && b.isAlive) return 1;
-    
-    // إذا كان كلاهما يعملان أو كلاهما لا يعملان، نرتب حسب الأولوية
-    return a.priority - b.priority;
-  });
+  // ترتيب حسب originalIndex (نفس الترتيب في providers.js)
+  results.sort((a, b) => a.originalIndex - b.originalIndex);
 
-  const aliveCount = sortedResults.filter(r => r.isAlive).length;
+  const aliveCount = results.filter(r => r.isAlive).length;
   console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${results.length}`);
-  console.log(`📊 الترتيب الديناميكي: ${sortedResults.map(r => `${r.provider}(${r.isAlive ? '✅' : '❌'})`).join(' → ')}`);
+  console.log(`📊 الترتيب النهائي (ثابت): ${results.map(r => r.provider).join(' → ')}`);
 
-  return sortedResults;
+  return results;
 };
 
 // ============================================================
-// 4. البحث عن أنمي (يُضاف إلى القائمة)
+// 3. البحث عن أنمي
 // ============================================================
 export const searchAnime = async (params) => {
   const { id, season, episode, language = 'sub', source = 's-2' } = params;
@@ -125,12 +106,11 @@ export const searchAnime = async (params) => {
         type: 'anime',
         language: language,
         isAlive: true,
-        statusCode: status.statusCode,
-        priority: getPriority('animeplay')
+        statusCode: status.statusCode
       };
     }
   } catch (e) {}
   return null;
 };
 
-console.log('⚡ محرك البحث الديناميكي جاهز (ترتيب متغير لكل طلب)');
+console.log('⚡ محرك البحث جاهز (ترتيب ثابت + علامات العمل)');

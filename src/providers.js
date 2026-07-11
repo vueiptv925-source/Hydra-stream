@@ -1,25 +1,12 @@
 // ================================================================
-// 🎬 قائمة المصادر الأساسية (10 مصادر - تعمل جميعها)
-// 📅 تاريخ التحديث: 10 يوليو 2026
-// ✅ تم التحقق من صحة جميع الروابط
+// 🎬 المصادر الأساسية (10 مصادر)
+// 📅 تاريخ التحديث: 11 يوليو 2026
+// ✅ هذه هي المصادر التي تعتمد عليها
 // ================================================================
 
 export const providers = [
   // ============================================================
-  // 1. VidSrc.to
-  // ============================================================
-  {
-    id: 'vidsrc.to',
-    label: 'VidSrc.to',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidsrc.to/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidsrc.to/embed/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // ============================================================
-  // 2. VidSrc.pm
+  // 1. VidSrc.pm
   // ============================================================
   {
     id: 'vidsrc.pm',
@@ -32,14 +19,27 @@ export const providers = [
   },
 
   // ============================================================
-  // 3. VidSrc.me
+  // 2. MoviesAPI
   // ============================================================
   {
-    id: 'vidsrc.me',
-    label: 'VidSrc.me',
+    id: 'moviesapi',
+    label: 'MoviesAPI',
     buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidsrc.me/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidsrc.me/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      if (p.type === 'movie') return `https://moviesapi.to/movie/${p.id}`;
+      if (p.type === 'tv') return `https://moviesapi.to/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 3. 111Movies
+  // ============================================================
+  {
+    id: '111movies',
+    label: '111Movies',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://111movies.net/movie/${p.id}`;
+      if (p.type === 'tv') return `https://111movies.net/tv/${p.id}/${p.season}/${p.episode}`;
       return '';
     }
   },
@@ -58,59 +58,33 @@ export const providers = [
   },
 
   // ============================================================
-  // 5. VidSrc.top
+  // 5. VidSrc.to
   // ============================================================
   {
-    id: 'vidsrc.top',
-    label: 'VidSrc.top',
+    id: 'vidsrc.to',
+    label: 'VidSrc.to',
     buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vid-src.top/embed/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vid-src.top/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      if (p.type === 'movie') return `https://vidsrc.to/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidsrc.to/embed/tv/${p.id}/${p.season}/${p.episode}`;
       return '';
     }
   },
 
   // ============================================================
-  // 6. MoviesAPI
+  // 6. VidSrc.me
   // ============================================================
   {
-    id: 'moviesapi',
-    label: 'MoviesAPI',
+    id: 'vidsrc.me',
+    label: 'VidSrc.me',
     buildUrl: (p) => {
-      if (p.type === 'movie') return `https://moviesapi.to/movie/${p.id}`;
-      if (p.type === 'tv') return `https://moviesapi.to/tv/${p.id}/${p.season}/${p.episode}`;
+      if (p.type === 'movie') return `https://vidsrc.me/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidsrc.me/embed/tv/${p.id}/${p.season}/${p.episode}`;
       return '';
     }
   },
 
   // ============================================================
-  // 7. 111Movies
-  // ============================================================
-  {
-    id: '111movies',
-    label: '111Movies',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://111movies.net/movie/${p.id}`;
-      if (p.type === 'tv') return `https://111movies.net/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // ============================================================
-  // 8. VidSpark.to
-  // ============================================================
-  {
-    id: 'vidspark',
-    label: 'VidSpark.to',
-    buildUrl: (p) => {
-      if (p.type === 'movie') return `https://vidspark.to/movie/${p.id}`;
-      if (p.type === 'tv') return `https://vidspark.to/tv/${p.id}/${p.season}/${p.episode}`;
-      return '';
-    }
-  },
-
-  // ============================================================
-  // 9. VidLink.pro
+  // 7. VidLink.pro
   // ============================================================
   {
     id: 'vidlink',
@@ -123,7 +97,7 @@ export const providers = [
   },
 
   // ============================================================
-  // 10. VsEmbed.ru
+  // 8. VsEmbed.ru
   // ============================================================
   {
     id: 'vsembed',
@@ -131,6 +105,32 @@ export const providers = [
     buildUrl: (p) => {
       if (p.type === 'movie') return `https://vsembed.ru/embed/movie/${p.id}`;
       if (p.type === 'tv') return `https://vsembed.ru/embed/tv/${p.id}`;
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 9. VidSrc.top
+  // ============================================================
+  {
+    id: 'vidsrc.top',
+    label: 'VidSrc.top',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vid-src.top/embed/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vid-src.top/embed/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 10. VidSpark.to
+  // ============================================================
+  {
+    id: 'vidspark',
+    label: 'VidSpark.to',
+    buildUrl: (p) => {
+      if (p.type === 'movie') return `https://vidspark.to/movie/${p.id}`;
+      if (p.type === 'tv') return `https://vidspark.to/tv/${p.id}/${p.season}/${p.episode}`;
       return '';
     }
   }

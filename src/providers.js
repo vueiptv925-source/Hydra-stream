@@ -1,7 +1,7 @@
 // ================================================================
-// 🎬 المصادر الأساسية (10 مصادر)
-// 📅 تاريخ التحديث: 11 يوليو 2026
-// ✅ هذه هي المصادر التي تعتمد عليها
+// 🎬 قائمة المصادر الأساسية (11 مصدراً)
+// 📅 تاريخ التحديث: 12 يوليو 2026
+// ✅ جميع المصادر تعمل حالياً
 // ================================================================
 
 export const providers = [
@@ -131,6 +131,31 @@ export const providers = [
     buildUrl: (p) => {
       if (p.type === 'movie') return `https://vidspark.to/movie/${p.id}`;
       if (p.type === 'tv') return `https://vidspark.to/tv/${p.id}/${p.season}/${p.episode}`;
+      return '';
+    }
+  },
+
+  // ============================================================
+  // 11. AutoEmbed.co
+  // ============================================================
+  {
+    id: 'autoembed',
+    label: 'AutoEmbed.co',
+    buildUrl: (p) => {
+      if (p.type === 'movie') {
+        if (p.id.startsWith('tt')) {
+          return `https://autoembed.co/movie/imdb/${p.id}`;
+        } else {
+          return `https://autoembed.co/movie/tmdb/${p.id}`;
+        }
+      }
+      if (p.type === 'tv') {
+        if (p.id.startsWith('tt')) {
+          return `https://autoembed.co/tv/imdb/${p.id}-${p.season}-${p.episode}`;
+        } else {
+          return `https://autoembed.co/tv/tmdb/${p.id}-${p.season}-${p.episode}`;
+        }
+      }
       return '';
     }
   }

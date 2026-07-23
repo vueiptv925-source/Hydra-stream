@@ -1,25 +1,20 @@
 // ================================================================
-// 📦 نظام التخزين المؤقت - النسخة النهائية
+// 📦 نظام التخزين المؤقت (محدث لدعم المصادر والمفقودات)
 // ================================================================
 
 import { providers, buildUrl } from './providers.js';
-import { getAdFreeVideo, getAdRemovalScript } from './advancedAdBlocker.js';
+import { getAdFreeVideo } from './advancedAdBlocker.js';
 import { searchSources, searchAnime } from './searchEngine.js';
+import { missingContent, findMissingContent, getMissingContentByType } from './missingContent.js';
 
-// ============================================================
-// 📋 ذاكرة التخزين المؤقت
-// ============================================================
 const memoryCache = new Map();
 const CACHE_TTL = 60 * 60 * 1000; // ساعة واحدة
 
-// ============================================================
-// 📋 دالة جلب المصادر مع التخزين المؤقت والبحث الديناميكي
-// ============================================================
 export const getStreams = async (params) => {
   const { type, id, season, episode } = params;
   const cacheKey = `${type}:${id}:${season}:${episode}`;
 
-  // 1. التحقق من الكاش
+  // التحقق من الكاش
   if (memoryCache.has(cacheKey)) {
     const entry = memoryCache.get(cacheKey);
     if (Date.now() - entry.timestamp < CACHE_TTL) {
@@ -28,16 +23,49 @@ export const getStreams = async (params) => {
     }
   }
 
-  console.log(`⚡ جاري البحث الديناميكي عن: ${id}`);
+  console.log(`🔍 جاري البحث عن: ${id}`);
 
   let sources = [];
 
-  // 2. البحث في جميع المصادر (أفلام ومسلسلات)
+  // 1. البحث عن المحتوى المفقود (إذا كان المعرف يبدأ بـ "missing-")
+  if (id && id.startsWith('missing-')) {
+    const missing = findMissingContent(type, id);
+    if (missing) {
+      if (missing.episodes) {
+        sources = missing.episodes.map(ep => ({
+          id: `${missing.id}-ep${ep.number}`,
+          label: `${missing.label} - الحلقة ${ep.number}`,
+          url: ep.iframeUrl,
+          status: 'ready',
+          isMissing: true,
+          type: 'iframe',
+          episode: ep.number
+        }));
+      } else {
+        sources = [{
+          id: missing.id,
+          label: missing.label,
+          url: missing.iframeUrl,
+          status: 'ready',
+          isMissing: true,
+          type: 'iframe'
+        }];
+      }
+      
+      memoryCache.set(cacheKey, {
+        timestamp: Date.now(),
+        sources: sources
+      });
+      console.log(`✅ تم العثور على محتوى مفقود: ${missing.label} (${sources.length} مصدر)`);
+      return sources;
+    }
+  }
+
+  // 2. البحث في المصادر العادية
   if (type === 'movie' || type === 'tv') {
     const searchParams = { type, id, season, episode };
     const searchResults = await searchSources(searchParams);
     
-    // 3. تطبيق نظام منع الإعلانات (17 طبقة)
     const processedResults = await Promise.all(
       searchResults.map(async (result) => {
         let adFreeUrl = result.url;
@@ -52,9 +80,7 @@ export const getStreams = async (params) => {
           ...result,
           url: adFreeUrl || result.url,
           adFree: adFree,
-          status: result.isAlive ? '✅ يعمل' : '❌ لا يعمل',
-          // إضافة كود منع الإعلانات للعميل
-          adRemovalScript: getAdRemovalScript()
+          status: result.isAlive ? '✅ يعمل' : '❌ لا يعمل'
         };
       })
     );
@@ -62,7 +88,7 @@ export const getStreams = async (params) => {
     sources = processedResults;
   }
 
-  // 4. البحث عن أنمي
+  // 3. البحث عن أنمي
   if (type === 'anime' || (type === 'tv' && params.animeSource)) {
     const animeParams = { 
       id, 
@@ -78,87 +104,54 @@ export const getStreams = async (params) => {
         ...animeResult,
         url: adFreeUrl,
         adFree: adFreeUrl !== animeResult.url,
-        status: '✅ يعمل',
-        adRemovalScript: getAdRemovalScript()
+        status: '✅ يعمل'
       });
     }
   }
 
-  // 5. خطة احتياطية (إذا لم نجد أي مصدر)
+  // 4. خطة احتياطية: إضافة المحتوى المفقود
   if (sources.length === 0) {
-    console.warn('⚠️ استخدام القائمة الاحتياطية');
-    const allSources = providers.map((provider) => {
-      const url = buildUrl(provider, params);
-      return {
-        provider: provider.id,
-        label: provider.label,
-        url: url || '#',
-        id: id,
-        type: 'embed',
-        adFree: false,
-        status: '⚠️ غير مختبر',
-        isAlive: false,
-        adRemovalScript: getAdRemovalScript()
-      };
-    });
-    sources = allSources;
+    const missingByType = getMissingContentByType(type);
+    if (missingByType.length > 0) {
+      sources = missingByType.flatMap(item => {
+        if (item.episodes) {
+          return item.episodes.map(ep => ({
+            id: `${item.id}-ep${ep.number}`,
+            label: `${item.label} - الحلقة ${ep.number}`,
+            url: ep.iframeUrl,
+            status: '✅ يعمل (محتوى مفقود)',
+            isMissing: true,
+            type: 'iframe',
+            episode: ep.number
+          }));
+        } else {
+          return [{
+            id: item.id,
+            label: item.label,
+            url: item.iframeUrl,
+            status: '✅ يعمل (محتوى مفقود)',
+            isMissing: true,
+            type: 'iframe'
+          }];
+        }
+      });
+      console.log(`✅ تم العثور على ${sources.length} محتوى مفقود من نوع ${type}`);
+    }
   }
 
-  // 6. ترتيب النتائج (المصادر العاملة أولاً)
-  sources.sort((a, b) => {
-    if (a.isAlive && !b.isAlive) return -1;
-    if (!a.isAlive && b.isAlive) return 1;
-    // ثم حسب الأولوية (ترتيب المصادر في القائمة)
-    const aIndex = providers.findIndex(p => p.id === a.provider);
-    const bIndex = providers.findIndex(p => p.id === b.provider);
-    return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
-  });
-
-  // 7. تخزين النتيجة في الكاش
+  // 5. تخزين في الكاش
   memoryCache.set(cacheKey, {
     timestamp: Date.now(),
     sources: sources
   });
 
-  const aliveCount = sources.filter(s => s.isAlive === true).length;
+  const aliveCount = sources.filter(s => s.status.includes('يعمل')).length;
   console.log(`✅ ${aliveCount} مصدراً يعمل من أصل ${sources.length}`);
   
   return sources;
 };
 
-// ============================================================
-// 📋 دالة تنظيف الكاش
-// ============================================================
 export const clearCache = () => {
   memoryCache.clear();
   console.log('🧹 تم تنظيف الكاش');
 };
-
-// ============================================================
-// 📋 دالة حذف عنصر معين من الكاش
-// ============================================================
-export const removeFromCache = (key) => {
-  if (memoryCache.has(key)) {
-    memoryCache.delete(key);
-    console.log(`🗑️ تم حذف ${key} من الكاش`);
-    return true;
-  }
-  console.log(`⚠️ العنصر ${key} غير موجود في الكاش`);
-  return false;
-};
-
-// ============================================================
-// 📋 دالة الحصول على حجم الكاش
-// ============================================================
-export const getCacheSize = () => {
-  return memoryCache.size;
-};
-
-// ============================================================
-// 📋 دالة الحصول على جميع مفاتيح الكاش
-// ============================================================
-export const getCacheKeys = () => {
-  return Array.from(memoryCache.keys());
-};
-
-console.log('📦 نظام التخزين المؤقت جاهز');
